@@ -32,7 +32,14 @@ export default async function AdminPage() {
   return (
     <main>
       <h1>Admin</h1>
-      <AdminPanel clips={catalog.clips} storage={store} />
+      {store === "none" ? (
+        <p className="err">
+          Storage is not connected, so nothing can be saved. In Vercel open this project&apos;s{" "}
+          <b>Storage</b> tab, create or connect a <b>Blob</b> store, then redeploy.
+        </p>
+      ) : (
+        <AdminPanel clips={catalog.clips} storage={store} />
+      )}
     </main>
   );
 }

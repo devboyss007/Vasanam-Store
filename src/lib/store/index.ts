@@ -1,6 +1,7 @@
 import path from "node:path";
 import { LocalStore } from "./local";
 import { BlobStore } from "./blob";
+import { NoStore } from "./none";
 import type { Store } from "./types";
 import type { Catalog } from "../catalog";
 
@@ -10,9 +11,12 @@ let store: Store | undefined;
 export function getStore(): Store {
   if (!store) {
     const token = process.env.BLOB_READ_WRITE_TOKEN;
+    // A hosted site has no writable disk: without a Blob token it has no storage.
     store = token
       ? new BlobStore(token)
-      : new LocalStore(process.env.DATA_DIR ?? path.join(process.cwd(), ".data"));
+      : process.env.VERCEL
+        ? new NoStore()
+        : new LocalStore(process.env.DATA_DIR ?? path.join(process.cwd(), ".data"));
   }
   return store;
 }

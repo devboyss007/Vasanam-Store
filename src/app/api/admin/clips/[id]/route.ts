@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/lib/auth";
 import { cleanText } from "@/lib/clipfile";
 import { editClip, removeClips } from "@/lib/catalog";
+import { guard } from "@/lib/guard";
 import { getStore, updateCatalog } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +9,7 @@ export const dynamic = "force-dynamic";
 type Ctx = { params: Promise<{ id: string }> };
 
 /** Admin: change a clip's title, package, movie or character. */
-export async function PATCH(req: Request, ctx: Ctx) {
+export const PATCH = guard(async (req: Request, ctx: Ctx) => {
   const denied = await requireAdmin(req);
   if (denied) return denied;
   const { id } = await ctx.params;
@@ -27,10 +28,10 @@ export async function PATCH(req: Request, ctx: Ctx) {
       : { catalog, result: null };
   });
   return clip ? Response.json({ clip }) : Response.json({ error: "No such clip" }, { status: 404 });
-}
+});
 
 /** Admin: delete a clip and its files. */
-export async function DELETE(req: Request, ctx: Ctx) {
+export const DELETE = guard(async (req: Request, ctx: Ctx) => {
   const denied = await requireAdmin(req);
   if (denied) return denied;
   const { id } = await ctx.params;
@@ -41,4 +42,4 @@ export async function DELETE(req: Request, ctx: Ctx) {
   if (removed.length === 0) return Response.json({ error: "No such clip" }, { status: 404 });
   await getStore().deleteFiles(removed.flatMap((c) => [c.fileUrl, c.previewUrl]));
   return Response.json({ ok: true });
-}
+});

@@ -27,7 +27,7 @@ export function AdminPanel({
   storage,
 }: {
   clips: ClipRecord[];
-  storage: "local" | "blob";
+  storage: "local" | "blob" | "none";
 }) {
   const router = useRouter();
   const packages = useMemo(() => {

@@ -2,8 +2,8 @@ import type { Catalog } from "../catalog";
 
 /** Where the catalog and the clip files live. */
 export interface Store {
-  /** "local": a folder on this PC (development). "blob": Vercel Blob. */
-  readonly mode: "local" | "blob";
+  /** "local": a folder on this PC (development). "blob": Vercel Blob. "none": hosted without storage connected. */
+  readonly mode: "local" | "blob" | "none";
   readCatalog(): Promise<Catalog>;
   writeCatalog(catalog: Catalog): Promise<void>;
   /** Saves a file and returns the address people download it from. */
