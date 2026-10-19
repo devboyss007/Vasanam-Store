@@ -40,6 +40,8 @@ export async function POST(req: Request) {
     if (e instanceof StorageNotConnected) return Response.json({ error: e.message }, { status: 503 });
     if (e instanceof ClipError) return Response.json({ error: e.message }, { status: 422 });
     console.error("upload failed", e);
-    return Response.json({ error: "The server could not save the clip" }, { status: 500 });
+    // Only the signed-in admin sees this, so the real reason is shown.
+    const reason = e instanceof Error ? e.message.slice(0, 300) : "unknown error";
+    return Response.json({ error: `The server could not save the clip: ${reason}` }, { status: 500 });
   }
 }

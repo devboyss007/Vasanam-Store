@@ -10,7 +10,8 @@ export function guard<A extends unknown[]>(handler: (...args: A) => Promise<Resp
         return Response.json({ error: e.message }, { status: 503 });
       }
       console.error("admin request failed", e);
-      return Response.json({ error: "The server could not do that" }, { status: 500 });
+      const reason = e instanceof Error ? e.message.slice(0, 300) : "unknown error";
+      return Response.json({ error: `The server could not do that: ${reason}` }, { status: 500 });
     }
   };
 }
