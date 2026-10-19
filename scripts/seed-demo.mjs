@@ -42,6 +42,7 @@ function silentWav(ms) {
 function clip(n, pack) {
   const durationMs = 4000 + (n % 9) * 1100;
   const mp3 = new Uint8Array(30000 + n * 1500).fill(n);
+  mp3.set([0x49, 0x44, 0x33, 3, 0]); // an ID3 header, so it passes as an mp3
   const wav = silentWav(durationMs);
   const meta = {
     format: "vasanam-clip",

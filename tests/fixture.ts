@@ -38,13 +38,20 @@ export type ClipOptions = {
   skip?: string[];
 };
 
+/** Stand-in mp3: an ID3 tag header and some bytes. */
+export function fakeMp3(length = 20000): Uint8Array {
+  const b = new Uint8Array(length).fill(7);
+  b.set([0x49, 0x44, 0x33, 3, 0]);
+  return b;
+}
+
 let counter = 0;
 export const newId = () => (++counter).toString(16).padStart(32, "0");
 
 /** Builds a clip file the way the PC clip maker does. */
 export function makeClip(o: ClipOptions = {}): Uint8Array {
   const durationMs = o.durationMs ?? 8000;
-  const mp3 = o.mp3 ?? new Uint8Array(20000).fill(7);
+  const mp3 = o.mp3 ?? fakeMp3();
   const wav = o.wav ?? silentWav(durationMs);
   const meta = {
     format: "vasanam-clip",

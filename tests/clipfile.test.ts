@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { zipSync } from "fflate";
 import { ClipError, cleanText, parseClipFile } from "@/lib/clipfile";
-import { makeClip, newId, silentWav } from "./fixture";
+import { fakeMp3, makeClip, newId, silentWav } from "./fixture";
 
 const rejects = (bytes: Uint8Array, message: RegExp) => {
   expect(() => parseClipFile(bytes)).toThrow(ClipError);
@@ -63,8 +63,12 @@ describe("parseClipFile", () => {
     rejects(makeClip({ wav: new Uint8Array(100) }), /not a WAV/);
   });
 
+  it("refuses an original that is not an mp3", () => {
+    rejects(makeClip({ mp3: new Uint8Array(500).fill(9) }), /not an mp3/);
+  });
+
   it("refuses oversized parts before inflating them", () => {
-    const huge = new Uint8Array(2 * 1024 * 1024 + 10);
+    const huge = fakeMp3(2 * 1024 * 1024 + 10);
     rejects(makeClip({ mp3: huge }), /too big/);
   });
 

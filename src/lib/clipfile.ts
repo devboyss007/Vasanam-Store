@@ -48,6 +48,13 @@ export function cleanText(value: unknown, max = 60): string {
 const sha256 = (bytes: Uint8Array) =>
   createHash("sha256").update(bytes).digest("hex");
 
+/** An ID3 tag or an MPEG frame sync: the same test the phone app makes. */
+export function looksLikeMp3(b: Uint8Array): boolean {
+  if (b.length < 4) return false;
+  if (b[0] === 0x49 && b[1] === 0x44 && b[2] === 0x33) return true;
+  return b[0] === 0xff && (b[1] & 0xe0) === 0xe0;
+}
+
 /** Checks a 16 kHz mono 16-bit PCM WAV and returns its length in ms. */
 export function wavDurationMs(wav: Uint8Array): number {
   const view = new DataView(wav.buffer, wav.byteOffset, wav.byteLength);
@@ -147,6 +154,7 @@ export function parseClipFile(bytes: Uint8Array): ParsedClip {
   if (sha256(original) !== wantOriginal || sha256(voice) !== wantVoice) {
     throw new ClipError("The audio does not match its checksum (damaged file)");
   }
+  if (!looksLikeMp3(original)) throw new ClipError("original.mp3 is not an mp3");
   const wavMs = wavDurationMs(voice);
   if (wavMs < MIN_MS - 100 || wavMs > MAX_MS + 500 || Math.abs(wavMs - durationMs) > 1500) {
     throw new ClipError("The voice recording length does not match the clip length");
