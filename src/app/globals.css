@@ -107,12 +107,16 @@ a.card:hover { text-decoration: none; border-color: var(--amber); transform: tra
 }
 .chip.good { color: var(--green); }
 .chip.poor { color: var(--crimson); }
-.play {
-  width: 40px; height: 40px; border-radius: 50%; border: 0; cursor: pointer;
-  background: var(--surface-high); color: var(--amber); font-size: 16px; flex: none;
-  border: 1px solid var(--line);
+.listen {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-width: 96px; height: 40px; padding: 0 14px; flex: none;
+  border-radius: 99px; border: 1px solid var(--line); cursor: pointer;
+  background: var(--surface-high); color: var(--amber);
+  font: inherit; font-weight: 800; font-size: 14px;
 }
-.play.on { background: var(--amber); color: #241800; }
+.listen:hover { border-color: var(--amber); }
+.listen.on { background: var(--amber); color: #241800; border-color: var(--amber); }
+.listen.bad { color: var(--crimson); border-color: var(--crimson); }
 
 .empty {
   text-align: center; color: var(--muted); padding: 40px 12px;

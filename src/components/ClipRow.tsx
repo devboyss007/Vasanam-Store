@@ -1,45 +1,67 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ClipRecord } from "@/lib/catalog";
 import { slugify } from "@/lib/slug";
 import { formatDuration, formatSize } from "@/lib/format";
 
 // Only one clip plays at a time.
-let current: { audio: HTMLAudioElement; stop: () => void } | null = null;
+let current: { stop: () => void } | null = null;
 
-function PlayButton({ id, title }: { id: string; title: string }) {
-  const [on, setOn] = useState(false);
-  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+type Status = "idle" | "loading" | "playing" | "failed";
 
-  useEffect(() => () => audio?.pause(), [audio]);
+/** Listen to the whole clip before downloading it. */
+function PreviewButton({ id, title }: { id: string; title: string }) {
+  const [status, setStatus] = useState<Status>("idle");
+  const audio = useRef<HTMLAudioElement | null>(null);
+
+  const stop = () => {
+    audio.current?.pause();
+    setStatus("idle");
+  };
+
+  useEffect(
+    () => () => {
+      audio.current?.pause();
+      if (current && audio.current) current = null;
+    },
+    [],
+  );
 
   const toggle = () => {
-    if (audio && on) {
-      audio.pause();
+    if (status === "loading" || status === "playing") {
+      stop();
       return;
     }
     current?.stop();
-    const a = audio ?? new Audio(`/api/clips/${id}/preview`);
-    const stop = () => setOn(false);
-    a.onended = stop;
-    a.onpause = stop;
-    a.onerror = stop;
-    setAudio(a);
-    current = { audio: a, stop };
+    const a = audio.current ?? new Audio(`/api/clips/${id}/preview`);
+    audio.current = a;
+    a.onended = () => setStatus("idle");
+    a.onerror = () => setStatus("failed");
+    a.onplaying = () => setStatus("playing");
+    current = { stop };
     a.currentTime = 0;
-    a.play().then(() => setOn(true), stop);
+    setStatus("loading");
+    a.play().catch(() => setStatus("failed"));
   };
 
+  const label =
+    status === "playing" || status === "loading"
+      ? "Stop"
+      : status === "failed"
+        ? "Try again"
+        : "Listen";
   return (
     <button
       type="button"
-      className={`play ${on ? "on" : ""}`}
+      className={`listen ${status === "playing" || status === "loading" ? "on" : ""} ${status === "failed" ? "bad" : ""}`}
       onClick={toggle}
-      aria-label={`${on ? "Pause" : "Play"} ${title}`}
+      aria-label={`${label}: ${title}`}
+      title={status === "failed" ? "The preview could not play" : "Listen to the whole clip before downloading"}
     >
-      {on ? "❚❚" : "▶"}
+      <span aria-hidden="true">{status === "loading" ? "…" : status === "playing" ? "■" : "▶"}</span>
+      {label}
     </button>
   );
 }
@@ -55,7 +77,7 @@ export function ClipRow({
 }) {
   return (
     <div className="row">
-      <PlayButton id={clip.id} title={clip.title} />
+      <PreviewButton id={clip.id} title={clip.title} />
       <div className="info">
         <div className="title">{clip.title}</div>
         <div className="meta">
