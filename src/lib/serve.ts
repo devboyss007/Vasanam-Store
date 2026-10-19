@@ -29,8 +29,11 @@ export async function serveClipFile(id: string, kind: "file" | "preview", downlo
     }
     const file = await store.open(address);
     if (!file) return new Response("Not found", { status: 404 });
-    headers["Content-Length"] = String(file.size);
-    return new Response(file.stream, { headers });
+    if (file.bytes.length === 0) {
+      return Response.json({ error: "empty file from storage", debug: file.debug }, { status: 502 });
+    }
+    headers["Content-Length"] = String(file.bytes.length);
+    return new Response(file.bytes as BodyInit, { headers });
   }
 
   const key = address.replace(/^\/api\/files\//, "");

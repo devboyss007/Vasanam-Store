@@ -73,10 +73,21 @@ export class BlobStore implements Store {
     await del(addresses, { token: this.token });
   }
 
-  /** A private file's bytes, streamed from the store. */
+  /** A private file's bytes, read from the store. */
   async open(address: string) {
     const found = await get(address, { access: "private", token: this.token, useCache: false });
     if (!found || found.statusCode !== 200) return null;
-    return { stream: found.stream, contentType: found.blob.contentType, size: found.blob.size };
+    const bytes = new Uint8Array(await new Response(found.stream).arrayBuffer());
+    return {
+      bytes,
+      contentType: found.blob.contentType,
+      size: found.blob.size,
+      debug: {
+        metaSize: found.blob.size,
+        got: bytes.length,
+        type: found.blob.contentType,
+        headers: Object.fromEntries(found.headers.entries()),
+      },
+    };
   }
 }
